@@ -1,19 +1,4 @@
-image: mcr.microsoft.com/dotnet/sdk:7.0
-
-stages:
-  - build
-
-variables:
-  TARGET_RUNTIME: "win-x64"
-
-build:
-  stage: build
-  script:
-    - dotnet restore
-    - dotnet build -c Release
-    - dotnet publish -c Release -r $TARGET_RUNTIME --self-contained true /p:PublishSingleFile=true /p:DebugType=none -o publish
-  artifacts:
-    paths:
-      - publish/*.exe
-    name: "${CI_COMMIT_REF_NAME}"
-    expire_in: never
+include:
+  - project: pipeline/csharp-dotnet-pipeline
+    ref: master
+    file: dotnet-windows.gitlab-ci.yml
