@@ -3,7 +3,6 @@
 *.sln.iml
 *.pdb
 *.dll
-*.exe
 *.cache
 *.log
 bin/
@@ -24,7 +23,6 @@ bin/
 obj/
 ipch/
 *.dll
-*.exe
 *.pdb
 *.ilk
 *.loc
