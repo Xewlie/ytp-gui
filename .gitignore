@@ -1,7 +1,6 @@
 # Rider
 .idea/
 *.sln.iml
-*.ico
 *.pdb
 *.dll
 *.exe
