@@ -6,31 +6,27 @@ namespace YTDownloader
 {
     public partial class Form1 : Form
     {
-        private bool isDownloading = false;
-        private string youtubeDlPath = "";
-        //private bool enableDebug = false;
-        private string downloaderExe = "youtube-dl-external.exe";
-        //private int totalBytes = 0;
-        //private int downloadedBytes = 0;
+        private bool isDownloading;
+        private readonly string youtubeDlPath;
+        private const string downloaderExe = "yt-dlp.exe";
 
         public Form1()
         {
             InitializeComponent();
-            youtubeDlPath = System.IO.Path.Combine(Application.StartupPath, downloaderExe);
+            youtubeDlPath = Path.Combine(Application.StartupPath, downloaderExe);
             if (!File.Exists(youtubeDlPath))
             {
-                MessageBox.Show(downloaderExe + " not found. Please put it in the same directory as this program and try again.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(downloaderExe + @" not found. Please put it in the same directory as this program and try again.", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
             }
 
             txtUrl.TextChanged += TxtUrl_TextChanged;
         }
 
-        private void TxtUrl_TextChanged(object sender, EventArgs e)
+        private void TxtUrl_TextChanged(object? sender, EventArgs e)
         {
             var url = txtUrl.Text;
-            var pattern = @"^(https?://)?(www\.)?(youtube\.com/watch\?v=)([a-zA-Z0-9_-]+).*";
-            var match = Regex.Match(url, pattern);
+            var match = MyRegex().Match(url);
             if (!match.Success) return;
             var newUrl = match.Groups[3].Value + match.Groups[4].Value;
             txtUrl.Text = newUrl;
@@ -49,8 +45,7 @@ namespace YTDownloader
             txtUrl.Enabled = false;
             rdoMp3.Enabled = false;
             rdoVideo.Enabled = false;
-            btnDownload.Text = "Downloading...";
-            //progressBar1.Visible = true;
+            btnDownload.Text = $@"Downloading...";
 
             var url = txtUrl.Text;
             var youtubeDlCommand = "";
@@ -72,20 +67,22 @@ namespace YTDownloader
             worker.RunWorkerAsync(youtubeDlCommand);
         }
 
-        private void Worker_DoWork(object sender, DoWorkEventArgs e)
+        private void Worker_DoWork(object? sender, DoWorkEventArgs e)
         {
             var youtubeDlCommand = e.Argument as string;
 
-            var startInfo = new ProcessStartInfo();
-            startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = $"/C \"{youtubeDlCommand}\"";
-            startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/C \"{youtubeDlCommand}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
             //startInfo.WindowStyle = ProcessWindowStyle.Hidden;
 
-            Console.WriteLine(startInfo.FileName + " " + startInfo.Arguments); // log command to console
+            Console.WriteLine(startInfo.FileName + @" " + startInfo.Arguments); // log command to console
 
             var process = new Process();
             process.StartInfo = startInfo;
@@ -95,7 +92,7 @@ namespace YTDownloader
             process.Start();
 
             process.EnableRaisingEvents = true;
-            process.OutputDataReceived += new DataReceivedEventHandler(Process_OutputDataReceived);
+            process.OutputDataReceived += Process_OutputDataReceived;
 
             process.BeginErrorReadLine();
             process.BeginOutputReadLine();
@@ -105,13 +102,13 @@ namespace YTDownloader
 
         private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
-            if (!String.IsNullOrEmpty(e.Data))
+            if (!string.IsNullOrEmpty(e.Data))
             {
-                Console.WriteLine("Error: " + e.Data);
+                Console.WriteLine(@"Error: " + e.Data);
             }
         }
 
-        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        private void Process_OutputDataReceived(object? sender, DataReceivedEventArgs e)
         {
             if (e.Data == null) return;
             if (e.Data.Contains("[download]"))
@@ -119,12 +116,12 @@ namespace YTDownloader
                 var index = e.Data.IndexOf('%');
                 if (index < 0) return;
                 var percentStr = e.Data.Substring(index - 4, 4);
-                if (!double.TryParse(percentStr, out var percent)) return;
+                if (!double.TryParse(percentStr, out _)) return;
                 if (sender != null) // add null check
                 {
-                    BeginInvoke(new Action(() => {
-                        labelProgress.Text = percentStr + " %";
-                    }));
+                    BeginInvoke(() => {
+                        labelProgress.Text = percentStr + @" %";
+                    });
                 }
                 Console.WriteLine(percentStr);
             }
@@ -134,27 +131,29 @@ namespace YTDownloader
             }
         }
 
-        private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void Worker_ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
             UpdateProgressLabel(e.ProgressPercentage);
         }
 
         private void UpdateProgressLabel(int percent)
         {
-            var progressText = percent.ToString() + "%";
+            var progressText = percent + "%";
             Console.WriteLine(progressText);
             labelProgress.Text = progressText;
         }
 
-        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void Worker_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
             isDownloading = false;
             btnDownload.Enabled = true;
             txtUrl.Enabled = true;
             rdoMp3.Enabled = true;
             rdoVideo.Enabled = true;
-            btnDownload.Text = "Download";
-            //progressBar1.Visible = false;
+            btnDownload.Text = @"Download";
         }
+
+        [GeneratedRegex("^(https?://)?(www\\.)?(youtube\\.com/watch\\?v=)([a-zA-Z0-9_-]+).*")]
+        private static partial Regex MyRegex();
     }
 }
