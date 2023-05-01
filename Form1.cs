@@ -6,12 +6,31 @@ using SevenZip;
 
 namespace YTDownloader
 {
+    public enum DownloadButtonState
+    {
+        Ready,
+        DownloadingFFMPEG,
+        DownloadingYTDL,
+        DownloadingVideo,
+        DownloadingMp3,
+        ExtractingFFMPEG
+    }
+
     public partial class Form1 : Form
     {
         private bool isDownloading;
         private readonly string youtubeDlPath;
         private const string downloaderExe = "yt-dlp.exe";
         private readonly HttpClient httpClient;
+        private DownloadButtonState downloadButtonState;
+        private readonly string[] downloadStatusTexts = {
+            @"Download",
+            @"Downloading ffmpeg-release-full.7z...",
+            @"Downloading YT-DLP.exe...",
+            @"Downloading video...",
+            @"Downloading MP3...",
+            @"Extracting FFMPEG..."
+        };
 
         public Form1()
         {
@@ -21,6 +40,14 @@ namespace YTDownloader
             httpClient = new HttpClient();
             DownloadRequiredFilesAsync().ConfigureAwait(false);
             txtUrl.TextChanged += TxtUrl_TextChanged;
+            downloadButtonState = DownloadButtonState.Ready;
+            UpdateDownloadButton();
+        }
+
+        private void UpdateDownloadButton()
+        {
+            btnDownload.Text = downloadStatusTexts[(int)downloadButtonState];
+            btnDownload.Enabled = downloadButtonState == DownloadButtonState.Ready;
         }
 
         private async Task DownloadRequiredFilesAsync()
@@ -48,12 +75,12 @@ namespace YTDownloader
 
             return folders.Any(folder => File.Exists(Path.Combine(folder, filename)));
         }
-        
+
         private async Task DownloadAndExtractFFMPEGAsync()
         {
-            btnDownload.Enabled = false;
-            btnDownload.Text = @"Downloading ffmpeg-release-full.7z...";
-            
+            downloadButtonState = DownloadButtonState.DownloadingFFMPEG;
+            UpdateDownloadButton();
+
             // Check if 7ZIP is installed and set the library up
             // If 7zip isn't installed, it looks for 7zip in current directory
             // If neither is found, it recommends to download ffmpeg manually.
@@ -78,7 +105,8 @@ namespace YTDownloader
                     throw new HttpRequestException("Couldn't download ffmpeg-release-full.7z");
                 }
 
-                btnDownload.Text = @"Extracting ffmpeg.exe...";
+                downloadButtonState = DownloadButtonState.ExtractingFFMPEG;
+                UpdateDownloadButton();
 
                 using SevenZipExtractor extractor = new SevenZipExtractor(archivePath);
                 extractor.ExtractFiles(Application.StartupPath, $@"{extractor.ArchiveFileNames[0]}\bin\ffmpeg.exe");
@@ -105,15 +133,15 @@ namespace YTDownloader
             finally
             {
                 File.Delete(archivePath);
-                btnDownload.Enabled = true;
-                btnDownload.Text = @"Download";
+                downloadButtonState = DownloadButtonState.Ready;
+                UpdateDownloadButton();
             }
         }
 
         private async Task DownloadYTDLAsync()
         {
-            btnDownload.Enabled = false;
-            btnDownload.Text = @"Downloading YT-DLP.exe...";
+            downloadButtonState = DownloadButtonState.DownloadingYTDL;
+            UpdateDownloadButton();
 
             try
             {
@@ -140,8 +168,8 @@ namespace YTDownloader
             }
             finally
             {
-                btnDownload.Enabled = true;
-                btnDownload.Text = @"Download";
+                downloadButtonState = DownloadButtonState.Ready;
+                UpdateDownloadButton();
             }
         }
 
@@ -163,23 +191,25 @@ namespace YTDownloader
             }
 
             isDownloading = true;
-            btnDownload.Enabled = false;
             txtUrl.Enabled = false;
             rdoMp3.Enabled = false;
             rdoVideo.Enabled = false;
-            btnDownload.Text = $@"Downloading...";
 
             var url = txtUrl.Text;
             var youtubeDlCommand = "";
 
             if (rdoVideo.Checked)
             {
+                downloadButtonState = DownloadButtonState.DownloadingVideo;
                 youtubeDlCommand = $"\"{youtubeDlPath}\" -o \"%USERPROFILE%\\Desktop\\%(title)s.%(ext)s\" \"{url}\"";
             }
             else if (rdoMp3.Checked)
             {
+                downloadButtonState = DownloadButtonState.DownloadingMp3;
                 youtubeDlCommand = $"\"{youtubeDlPath}\" -x --audio-format mp3 -o \"%USERPROFILE%\\Desktop\\%(title)s.%(ext)s\" \"{url}\"";
             }
+
+            UpdateDownloadButton();
 
             var worker = new BackgroundWorker();
             worker.DoWork += Worker_DoWork;
@@ -267,14 +297,14 @@ namespace YTDownloader
         private void Worker_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
             isDownloading = false;
-            btnDownload.Enabled = true;
+            downloadButtonState = DownloadButtonState.Ready;
+            UpdateDownloadButton();
             txtUrl.Enabled = true;
             rdoMp3.Enabled = true;
             rdoVideo.Enabled = true;
-            btnDownload.Text = @"Download";
         }
-        
-                private void Set7ZipLibraryPath()
+
+        private void Set7ZipLibraryPath()
         {
             string? sevenZipPath = Get7ZipPath();
 
@@ -292,9 +322,9 @@ namespace YTDownloader
                 else
                 {
                     MessageBox.Show(@"7-Zip was not installed on this computer, and a fall back 7z.dll was not found in the application directory.\n\n
-                        Please install 7-Zip or put the 7z.dll file in the application directory.\n\n
-                        Alternatively, download FFMPEG at https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z and extract ffmpeg.exe in the bin folder
-                        to the same directory as this executable, or put it in your PATH.", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Please install 7-Zip or put the 7z.dll file in the application directory.\n\n
+                    Alternatively, download FFMPEG at https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z and extract ffmpeg.exe in the bin folder
+                    to the same directory as this executable, or put it in your PATH.", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Application.Exit();
                 }
             }
@@ -325,4 +355,5 @@ namespace YTDownloader
         [GeneratedRegex("^(https?://)?(www\\.)?(youtube\\.com/watch\\?v=)([a-zA-Z0-9_-]+).*")]
         private static partial Regex MyRegex();
     }
+
 }
