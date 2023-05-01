@@ -13,4 +13,8 @@
     <Content Include="videoIcon.ico" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SevenZipSharp.Interop" Version="19.0.2" />
+  </ItemGroup>
+
 </Project>
