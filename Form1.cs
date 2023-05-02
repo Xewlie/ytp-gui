@@ -9,23 +9,26 @@ namespace YTDownloader
     public partial class Form1 : Form
     {
         private bool isDownloading;
-        private readonly string youtubeDlPath;
         private readonly HttpClient httpClient;
-        
+
         private const string youtubeDLExe = "yt-dlp.exe";
         private const string ffmpegExe = "ffmpeg.exe";
-        
+
         private const string ffmpegUrl = "https://files.hyperxewl.xyz/ffmpeg-6.0-full_build.7z";
         private const string ytp = "https://files.hyperxewl.xyz/yt-dlp.exe";
 
         public Form1()
         {
-            InitializeComponent();
-            youtubeDlPath = Path.Combine(Application.StartupPath, youtubeDLExe);
-            Path.Combine(Application.StartupPath, ffmpegExe);
+            InitializeComponent(); // init form objects
+            txtUrl.TextChanged += TxtUrl_TextChanged; // set event for download button text changing
             httpClient = new HttpClient();
-            DownloadRequiredFilesAsync().ConfigureAwait(false);
-            txtUrl.TextChanged += TxtUrl_TextChanged;
+
+            DownloadRequiredFilesAsync().ConfigureAwait(false); // check if you need ytp/ffmpeg
+        }
+
+        private string YoutubeDLPath()
+        {
+            return Path.Combine(Application.StartupPath, youtubeDLExe);
         }
 
         private async Task DownloadRequiredFilesAsync()
@@ -53,12 +56,12 @@ namespace YTDownloader
 
             return folders.Any(folder => File.Exists(Path.Combine(folder, filename)));
         }
-        
+
         private async Task DownloadAndExtractFFMPEGAsync()
         {
             btnDownload.Enabled = false;
             btnDownload.Text = @"Downloading " + Path.GetFileName(ffmpegUrl);
-            
+
             // Check if 7ZIP is installed and set the library up
             // If 7zip isn't installed, it looks for 7zip in current directory
             // If neither is found, it recommends to download ffmpeg manually.
@@ -126,7 +129,7 @@ namespace YTDownloader
 
                 if (response.IsSuccessStatusCode)
                 {
-                    await using Stream contentStream = await response.Content.ReadAsStreamAsync(), fileStream = new FileStream(youtubeDlPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await using Stream contentStream = await response.Content.ReadAsStreamAsync(), fileStream = new FileStream(YoutubeDLPath(), FileMode.Create, FileAccess.Write, FileShare.None);
                     await contentStream.CopyToAsync(fileStream);
                 }
                 else
@@ -179,11 +182,11 @@ namespace YTDownloader
 
             if (rdoVideo.Checked)
             {
-                youtubeDlCommand = $"\"{youtubeDlPath}\" -o \"%USERPROFILE%\\Desktop\\%(title)s.%(ext)s\" \"{url}\"";
+                youtubeDlCommand = $"\"{YoutubeDLPath()}\" -o \"%USERPROFILE%\\Desktop\\%(title)s.%(ext)s\" \"{url}\"";
             }
             else if (rdoMp3.Checked)
             {
-                youtubeDlCommand = $"\"{youtubeDlPath}\" -x --audio-format mp3 -o \"%USERPROFILE%\\Desktop\\%(title)s.%(ext)s\" \"{url}\"";
+                youtubeDlCommand = $"\"{YoutubeDLPath()}\" -x --audio-format mp3 -o \"%USERPROFILE%\\Desktop\\%(title)s.%(ext)s\" \"{url}\"";
             }
 
             var worker = new BackgroundWorker();
@@ -245,7 +248,8 @@ namespace YTDownloader
                 if (!double.TryParse(percentStr, out _)) return;
                 if (sender != null) // add null check
                 {
-                    BeginInvoke(() => {
+                    BeginInvoke(() =>
+                    {
                         labelProgress.Text = percentStr + @" %";
                     });
                 }
@@ -278,7 +282,7 @@ namespace YTDownloader
             rdoVideo.Enabled = true;
             btnDownload.Text = @"Download";
         }
-        
+
         private void Set7ZipLibraryPath()
         {
             string? sevenZipPath = Get7ZipPath();
