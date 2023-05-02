@@ -167,9 +167,7 @@ public partial class Form1 : Form
 
         SaveFileDialog saveFileDialog = new SaveFileDialog();
         saveFileDialog.FileName = "output";
-        saveFileDialog.Filter = rdoMp3.Checked
-            ? "MP3 Audio File (*.mp3)|*.mp3"
-            : "MP4 Video File (*.mp4)|*.mp4";
+        saveFileDialog.Filter = rdoMp3.Checked ? "MP3 Audio File (*.mp3)|*.mp3" : "WebM Video File (*.webm)|*.webm";
 
         if (saveFileDialog.ShowDialog() != DialogResult.OK)
         {
