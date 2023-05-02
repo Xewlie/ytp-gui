@@ -10,14 +10,19 @@ namespace YTDownloader
     {
         private bool isDownloading;
         private readonly string youtubeDlPath;
-        private const string downloaderExe = "yt-dlp.exe";
         private readonly HttpClient httpClient;
+        
+        private const string youtubeDLExe = "yt-dlp.exe";
+        private const string ffmpegExe = "ffmpeg.exe";
+        
+        private const string ffmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z";
+        private const string ytp = "https://github.com/yt-dlp/yt-dlp/releases/download/2023.03.04/yt-dlp.exe";
 
         public Form1()
         {
             InitializeComponent();
-            youtubeDlPath = Path.Combine(Application.StartupPath, downloaderExe);
-            Path.Combine(Application.StartupPath, "ffmpeg.exe");
+            youtubeDlPath = Path.Combine(Application.StartupPath, youtubeDLExe);
+            Path.Combine(Application.StartupPath, ffmpegExe);
             httpClient = new HttpClient();
             DownloadRequiredFilesAsync().ConfigureAwait(false);
             txtUrl.TextChanged += TxtUrl_TextChanged;
@@ -25,12 +30,12 @@ namespace YTDownloader
 
         private async Task DownloadRequiredFilesAsync()
         {
-            if (!FileExistsInPath("yt-dlp.exe"))
+            if (!FileExistsInPath(youtubeDLExe))
             {
                 await DownloadYTDLAsync();
             }
 
-            if (!FileExistsInPath("ffmpeg.exe"))
+            if (!FileExistsInPath(ffmpegExe))
             {
                 await DownloadAndExtractFFMPEGAsync();
             }
@@ -52,7 +57,7 @@ namespace YTDownloader
         private async Task DownloadAndExtractFFMPEGAsync()
         {
             btnDownload.Enabled = false;
-            btnDownload.Text = @"Downloading ffmpeg-release-full.7z...";
+            btnDownload.Text = @"Downloading " + Path.GetFileName(ffmpegUrl);
             
             // Check if 7ZIP is installed and set the library up
             // If 7zip isn't installed, it looks for 7zip in current directory
@@ -62,9 +67,9 @@ namespace YTDownloader
             // big fail!
             Set7ZipLibraryPath();
 
-            string archivePath = Path.Combine(Path.GetTempPath(), "ffmpeg-release-full.7z");
-            const string url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z";
-            HttpResponseMessage response = await httpClient.GetAsync(url);
+            string archivePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(ffmpegUrl));
+
+            HttpResponseMessage response = await httpClient.GetAsync(ffmpegUrl);
 
             try
             {
@@ -75,17 +80,17 @@ namespace YTDownloader
                 }
                 else
                 {
-                    throw new HttpRequestException("Couldn't download ffmpeg-release-full.7z");
+                    throw new HttpRequestException("Couldn't download " + Path.GetFileName(ffmpegUrl));
                 }
 
-                btnDownload.Text = @"Extracting ffmpeg.exe...";
+                btnDownload.Text = @"Extracting " + ffmpegExe;
 
                 using SevenZipExtractor extractor = new SevenZipExtractor(archivePath);
-                extractor.ExtractFiles(Application.StartupPath, $@"{extractor.ArchiveFileNames[0]}\bin\ffmpeg.exe");
+                extractor.ExtractFiles(Application.StartupPath, $@"{extractor.ArchiveFileNames[0]}\bin\" + ffmpegExe);
 
                 // Move the extracted file to the root directory and delete the unneeded folders
-                string extractedFilePath = Path.Combine(Application.StartupPath, extractor.ArchiveFileNames[0], "bin", "ffmpeg.exe");
-                string destinationPath = Path.Combine(Application.StartupPath, "ffmpeg.exe");
+                string extractedFilePath = Path.Combine(Application.StartupPath, extractor.ArchiveFileNames[0], "bin", ffmpegExe);
+                string destinationPath = Path.Combine(Application.StartupPath, ffmpegExe);
 
                 File.Move(extractedFilePath, destinationPath, true);
 
@@ -99,7 +104,7 @@ namespace YTDownloader
                 {
                     Console.WriteLine(ex.Message);
                 }
-                MessageBox.Show(@"Couldn't download or extract ffmpeg.exe", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(@"Couldn't download or extract " + ffmpegExe, @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
             }
             finally
@@ -113,11 +118,11 @@ namespace YTDownloader
         private async Task DownloadYTDLAsync()
         {
             btnDownload.Enabled = false;
-            btnDownload.Text = @"Downloading YT-DLP.exe...";
+            btnDownload.Text = @"Downloading " + youtubeDLExe;
 
             try
             {
-                HttpResponseMessage response = await httpClient.GetAsync("https://github.com/yt-dlp/yt-dlp/releases/download/2023.03.04/yt-dlp.exe");
+                HttpResponseMessage response = await httpClient.GetAsync(ytp);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -126,7 +131,7 @@ namespace YTDownloader
                 }
                 else
                 {
-                    throw new HttpRequestException("Couldn't download yt-dlp.exe");
+                    throw new HttpRequestException("Couldn't download " + youtubeDLExe);
                 }
             }
             catch (Exception ex)
@@ -135,7 +140,7 @@ namespace YTDownloader
                 {
                     Console.WriteLine(ex.Message);
                 }
-                MessageBox.Show(@"Couldn't download yt-dlp.exe", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(@"Couldn't download " + youtubeDLExe, @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
             }
             finally
@@ -274,7 +279,7 @@ namespace YTDownloader
             btnDownload.Text = @"Download";
         }
         
-                private void Set7ZipLibraryPath()
+        private void Set7ZipLibraryPath()
         {
             string? sevenZipPath = Get7ZipPath();
 
@@ -291,10 +296,7 @@ namespace YTDownloader
                 }
                 else
                 {
-                    MessageBox.Show(@"7-Zip was not installed on this computer, and a fall back 7z.dll was not found in the application directory.\n\n
-                        Please install 7-Zip or put the 7z.dll file in the application directory.\n\n
-                        Alternatively, download FFMPEG at https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z and extract ffmpeg.exe in the bin folder
-                        to the same directory as this executable, or put it in your PATH.", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(@"7-Zip was not installed on this computer, and a fall back 7z.dll was not found in the application directory.\n\nPlease install 7-Zip or put the 7z.dll file in the application directory.\n\nAlternatively, download FFMPEG at " + ffmpegUrl + @"and extract ffmpeg.exe in the bin folder to the same directory as this executable, or put it in your PATH.", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Application.Exit();
                 }
             }
