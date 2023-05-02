@@ -26,11 +26,6 @@ public partial class Form1 : Form
         DownloadRequiredFilesAsync().ConfigureAwait(false); // check if you need ytp/ffmpeg
     }
 
-    private string YoutubeDLPath()
-    {
-        return Path.Combine(Application.StartupPath, youtubeDLExe);
-    }
-
     private async Task DownloadRequiredFilesAsync()
     {
         if (!FileExistsInPath(youtubeDLExe))
@@ -89,16 +84,16 @@ public partial class Form1 : Form
             btnDownload.Text = @"Extracting " + ffmpegExe;
 
             using SevenZipExtractor extractor = new SevenZipExtractor(archivePath);
-            await extractor.ExtractFilesAsync(Application.StartupPath, $@"{extractor.ArchiveFileNames[0]}\bin\" + ffmpegExe);
+            await extractor.ExtractFilesAsync(Application.StartupPath, $@"{Path.GetFileNameWithoutExtension(ffmpegUrl)}\bin\" + ffmpegExe);
 
             // Move the extracted file to the root directory and delete the unneeded folders
-            string extractedFilePath = Path.Combine(Application.StartupPath, extractor.ArchiveFileNames[0], "bin", ffmpegExe);
+            string extractedFilePath = Path.Combine(Application.StartupPath, Path.GetFileNameWithoutExtension(ffmpegUrl), "bin", ffmpegExe);
             string destinationPath = Path.Combine(Application.StartupPath, ffmpegExe);
 
             File.Move(extractedFilePath, destinationPath, true);
 
             // Delete the extracted folders
-            Directory.Delete(Path.Combine(Application.StartupPath, extractor.ArchiveFileNames[0]), true);
+            Directory.Delete(Path.Combine(Application.StartupPath, Path.GetFileNameWithoutExtension(ffmpegUrl)), true);
 
         }
         catch (Exception ex)
@@ -316,6 +311,11 @@ public partial class Form1 : Form
                 Application.Exit();
             }
         }
+    }
+    
+    private string YoutubeDLPath()
+    {
+        return Path.Combine(Application.StartupPath, youtubeDLExe);
     }
 
     private string? Get7ZipPath()
