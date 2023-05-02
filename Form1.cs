@@ -296,7 +296,7 @@ namespace YTDownloader
                 }
                 else
                 {
-                    MessageBox.Show(@"7-Zip was not installed on this computer, and a fall back 7z.dll was not found in the application directory.\n\nPlease install 7-Zip or put a                                                                                                                                                                                                                                   7z.dll file in the application directory.\n\nAlternatively, download FFMPEG at " + ffmpegUrl + @"and extract ffmpeg.exe in the bin folder to the same directory as this executable, or put it in your PATH.", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(@"7-Zip was not installed on this computer, and a fall back 7z.dll was not found in the application directory.\n\nPlease install 7-Zip or put a 7z.dll file in the application directory.\n\nAlternatively, download FFMPEG at " + ffmpegUrl + @"and extract ffmpeg.exe in the bin folder to the same directory as this executable, or put it in your PATH.", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Application.Exit();
                 }
             }
