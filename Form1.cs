@@ -15,8 +15,8 @@ namespace YTDownloader
         private const string youtubeDLExe = "yt-dlp.exe";
         private const string ffmpegExe = "ffmpeg.exe";
         
-        private const string ffmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z";
-        private const string ytp = "https://github.com/yt-dlp/yt-dlp/releases/download/2023.03.04/yt-dlp.exe";
+        private const string ffmpegUrl = "https://files.hyperxewl.xyz/ffmpeg-6.0-full_build.7z";
+        private const string ytp = "https://files.hyperxewl.xyz/yt-dlp.exe";
 
         public Form1()
         {
