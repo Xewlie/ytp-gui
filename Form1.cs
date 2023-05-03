@@ -254,7 +254,8 @@ public partial class Form1 : Form
             if (!double.TryParse(percentStr, out _)) return;
             if (sender != null) // add null check
             {
-                BeginInvoke(() => {
+                BeginInvoke(() =>
+                {
                     labelProgress.Text = percentStr + @" %";
                 });
             }
@@ -310,7 +311,7 @@ public partial class Form1 : Form
             }
         }
     }
-    
+
     private string YoutubeDLPath()
     {
         return Path.Combine(Application.StartupPath, youtubeDLExe);
