@@ -1,6 +1,6 @@
 ﻿namespace YTDownloader
 {
-    partial class Form1
+    partial class MainWindow
     {
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtUrl;
@@ -23,7 +23,7 @@
 
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             label1 = new Label();
             txtUrl = new TextBox();
             rdoVideo = new RadioButton();
@@ -97,7 +97,7 @@
             labelProgress.Text = "---";
             labelProgress.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // Form1
+            // MainWindow
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -112,7 +112,7 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(7, 9, 7, 9);
             MaximizeBox = false;
-            Name = "Form1";
+            Name = "MainWindow";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "YouTube Downloader";
             ResumeLayout(false);
