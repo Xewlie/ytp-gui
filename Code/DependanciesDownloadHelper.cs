@@ -32,7 +32,7 @@ public class DependanciesDownloadHelper
         return folders.Any(folder => File.Exists(Path.Combine(folder, filename)));
     }
     
-    private async Task DownloadAndExtractFFMPEGAsync(HttpClient httpClient, Button btnDownload)
+    private async Task DownloadAndExtractFFMPEGAsync(HttpClient httpClient, Control btnDownload)
     {
         btnDownload.Enabled = false;
         btnDownload.Text = @"Downloading " + Path.GetFileName(Constants.ffmpegUrl);
@@ -64,16 +64,23 @@ public class DependanciesDownloadHelper
             btnDownload.Text = @"Extracting " + Constants.ffmpegExe;
 
             using SevenZipExtractor extractor = new SevenZipExtractor(archivePath);
-            await extractor.ExtractFilesAsync(Application.StartupPath, $@"{Path.GetFileNameWithoutExtension(Constants.ffmpegUrl)}\bin\" + Constants.ffmpegExe);
+            await extractor.ExtractFilesAsync(Application.StartupPath, $@"{Constants.ffmpegInnerFolderName}\bin\" + Constants.ffmpegExe);
 
             // Move the extracted file to the root directory and delete the unneeded folders
-            string extractedFilePath = Path.Combine(Application.StartupPath, Path.GetFileNameWithoutExtension(Constants.ffmpegUrl), "bin", Constants.ffmpegExe);
+            string extractedFilePath = Path.Combine(Application.StartupPath, Constants.ffmpegInnerFolderName, "bin", Constants.ffmpegExe);
             string destinationPath = Path.Combine(Application.StartupPath, Constants.ffmpegExe);
 
             File.Move(extractedFilePath, destinationPath, true);
 
             // Delete the extracted folders
-            Directory.Delete(Path.Combine(Application.StartupPath, Path.GetFileNameWithoutExtension(Constants.ffmpegUrl)), true);
+            try
+            {
+                Directory.Delete(Path.Combine(Application.StartupPath, Constants.ffmpegInnerFolderName), true);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
 
         }
         catch (Exception ex)

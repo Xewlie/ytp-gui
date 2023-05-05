@@ -6,6 +6,7 @@ public static class Constants
     public const string ffmpegExe = "ffmpeg.exe";
 
     public const string ffmpegUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z";
+    public const string ffmpegInnerFolderName = "ffmpeg-6.0-full_build";
     public const string ytp = "https://github.com/yt-dlp/yt-dlp/releases/download/2023.03.04/yt-dlp.exe";
 
     public static string YoutubeDLPath()
