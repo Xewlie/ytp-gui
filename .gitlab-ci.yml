@@ -1,4 +1,0 @@
-include:
-  - project: pipeline/csharp-dotnet-pipeline
-    ref: master
-    file: dotnet-windows.gitlab-ci.yml
